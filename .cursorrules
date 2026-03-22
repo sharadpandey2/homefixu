@@ -1,0 +1,17 @@
+# Project: homebuddy-12
+# Ecosystem: Typescript
+
+You are working on a TypeScript project.
+Runtime: node
+Package manager: pnpm
+Frontend: next
+Backend: nestjs
+Database: postgres with drizzle
+API: ts-rest
+Auth: better-auth
+Testing: vitest-playwright
+Validation: typia
+
+Follow existing code patterns and conventions.
+Use the established project structure.
+Keep this file updated when the project structure changes.

@@ -1,0 +1,32 @@
+{
+  "name": "@homebuddy-12/api",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {},
+  "dependencies": {
+    "@homebuddy-12/auth": "workspace:*",
+    "@homebuddy-12/db": "workspace:*",
+    "@homebuddy-12/env": "workspace:*",
+    "@ts-rest/core": "catalog:",
+    "dotenv": "catalog:",
+    "typia": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@homebuddy-12/config": "workspace:*",
+    "@playwright/test": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
+    "@vitest/ui": "catalog:",
+    "jsdom": "catalog:",
+    "playwright": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

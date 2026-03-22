@@ -1,0 +1,3 @@
+{
+  "extends": "@homebuddy-12/config/tsconfig.base.json"
+}

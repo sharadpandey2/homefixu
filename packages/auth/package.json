@@ -1,0 +1,28 @@
+{
+  "name": "@homebuddy-12/auth",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {},
+  "dependencies": {
+    "@better-auth/drizzle-adapter": "^1.5.5",
+    "@homebuddy-12/db": "workspace:*",
+    "@homebuddy-12/env": "workspace:*",
+    "better-auth": "catalog:",
+    "dotenv": "catalog:",
+    "stripe": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@homebuddy-12/config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}
