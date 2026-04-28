@@ -60,7 +60,9 @@ export default function CreateTechnicianPage() {
       });
 
       if (!res.ok) {
-        const errorData = await res.json().catch(() => null);
+        const errorData = (await res.json().catch(() => null)) as {
+          message?: string;
+        } | null;
         throw new Error(errorData?.message || "Failed to create technician");
       }
 
