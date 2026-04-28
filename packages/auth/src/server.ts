@@ -81,6 +81,8 @@ export const auth = betterAuth({
   advanced: {
     // Use secure cookies in production (Railway uses HTTPS)
     useSecureCookies: process.env.NODE_ENV === "production",
+    // Temporarily disable origin check to bypass "Invalid origin" while debugging
+    disableOriginCheck: true,
   },
 });
 

@@ -11,6 +11,10 @@ async function bootstrap() {
   try {
     const app = await NestFactory.create(AppModule);
 
+    // Trust Railway Proxy
+    const expressApp = app.getHttpAdapter().getInstance();
+    expressApp.set("trust proxy", true);
+
     app.useGlobalFilters(new AllExceptionsFilter());
 
     // Forces all controllers to start with /api
@@ -41,7 +45,6 @@ async function bootstrap() {
       credentials: true,
     });
 
-    const expressApp = app.getHttpAdapter().getInstance();
     // Mount Better Auth AFTER CORS is enabled
     expressApp.use("/api/auth", authHandler);
 
