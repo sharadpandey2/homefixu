@@ -2,7 +2,6 @@
 // This keeps the import path `@/lib/auth-client` working across the codebase
 // while there's one source of truth for auth config.
 export {
-  admin,
   authClient,
   getSession,
   signIn,

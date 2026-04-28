@@ -29,8 +29,7 @@ export const authClient = createAuthClient({
   },
 });
 
-export const { signIn, signUp, signOut, useSession, getSession, register } =
-  authClient;
+export const { signIn, signUp, signOut, useSession, getSession } = authClient;
 
 // Admin usage examples:
 // authClient.admin.listUsers()

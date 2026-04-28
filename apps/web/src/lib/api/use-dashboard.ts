@@ -76,6 +76,7 @@ export function useCreateBooking() {
   return useMutation({
     mutationFn: async (data: {
       serviceId: string;
+      propertyId: string;
       scheduledAt: string;
       notes?: string;
     }) => {
