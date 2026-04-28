@@ -430,7 +430,7 @@ export default function TechnicianDashboard() {
                 </h2>
               </div>
               <div className="space-y-4">
-                {inProgressJobs.body.map((job) => (
+                {(inProgressJobs.body as any[]).map((job) => (
                   <ServiceRequestCard
                     key={job.id}
                     request={job as any}
@@ -462,7 +462,7 @@ export default function TechnicianDashboard() {
                   </p>
                 </div>
               ) : (
-                confirmedJobs.body.map((job) => (
+                (confirmedJobs.body as any[]).map((job) => (
                   <ServiceRequestCard
                     key={job.id}
                     request={job as any}
@@ -501,7 +501,7 @@ export default function TechnicianDashboard() {
                 </p>
               </div>
             ) : (
-              pendingRequests.body.map((request) => (
+              (pendingRequests.body as any[]).map((request) => (
                 <ServiceRequestCard
                   key={request.id}
                   request={request as any}
