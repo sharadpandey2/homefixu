@@ -18,13 +18,20 @@ async function bootstrap() {
 
     app.enableCors({
       origin: [
+        // Local development
         "http://localhost:3001",
+        "http://localhost:8080",
         "http://tech.localhost:3001",
         "http://admin.localhost:3001",
         "http://127.0.0.1:3001",
+        // Production - custom domain
         "https://www.homefixu.in",
         "https://homefixu.in",
         "https://api.homefixu.in",
+        // ✅ Production - Railway URLs (MUST be hardcoded - env vars not reliable here)
+        "https://web-production-797f8.up.railway.app",
+        "https://server-production-c3c4.up.railway.app",
+        // Extra from env vars
         process.env.NEXT_PUBLIC_APP_URL,
         process.env.NEXT_PUBLIC_SERVER_URL,
         process.env.CORS_ORIGIN,
