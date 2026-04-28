@@ -86,7 +86,7 @@ export default function AdminDashboard() {
           credentials: "include",
         });
         if (!res.ok) throw new Error("Failed to load platform analytics");
-        const data = await res.json();
+        const data: AdminStats = await res.json();
         setStats(data);
       } catch (err: any) {
         setError(err.message);
