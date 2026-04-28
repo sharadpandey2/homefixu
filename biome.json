@@ -27,7 +27,8 @@
       "!**/.source",
       "!**/convex/_generated",
       "!**/scratch",
-      "!**/*.scratch.ts"
+      "!**/*.scratch.ts",
+      "!**/.open-next"
     ]
   },
   "formatter": {
