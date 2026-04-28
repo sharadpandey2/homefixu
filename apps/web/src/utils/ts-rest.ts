@@ -1,5 +1,5 @@
 import { contract } from "@homebuddy-12/api/index";
-import { env } from "@homebuddy-12/env/web";
+
 import { QueryClient } from "@tanstack/react-query";
 import { initClient, tsRestFetchApi } from "@ts-rest/core";
 import { initTsrReactQuery } from "@ts-rest/react-query/v5";
@@ -14,7 +14,7 @@ export const queryClient = new QueryClient({
 });
 
 const clientArgs = {
-  baseUrl: `${env.NEXT_PUBLIC_SERVER_URL}/rest`, // Fixed environment variable
+  baseUrl: `${process.env.NEXT_PUBLIC_SERVER_URL ?? "http://localhost:3000"}/rest`, // Fixed environment variable
   baseHeaders: {},
   credentials: "include" as const,
   api: tsRestFetchApi,
