@@ -82,7 +82,13 @@ export default function UnifiedLoginPage() {
         return;
       }
 
-      router.push(roleConfigs[selectedRole].redirect as string);
+      const redirectPath =
+        selectedRole === "admin"
+          ? "/admin/dashboard"
+          : selectedRole === "technician"
+            ? "/technician/dashboard"
+            : "/dashboard";
+      window.location.href = redirectPath;
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
