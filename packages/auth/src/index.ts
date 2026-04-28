@@ -9,6 +9,21 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { admin } from "better-auth/plugins";
 
+const trustedOrigins = [
+  "http://localhost:3000",
+  "http://localhost:3001",
+  "http://127.0.0.1:3000",
+  "http://127.0.0.1:3001",
+  "http://tech.localhost:3000",
+  "http://tech.localhost:3001",
+  "http://admin.localhost:3000",
+  "http://admin.localhost:3001",
+  process.env.NEXT_PUBLIC_SERVER_URL,
+  process.env.NEXT_PUBLIC_APP_URL,
+].filter((o): o is string => !!o);
+
+console.log("[BetterAuth] ✅ trustedOrigins resolved at module init:", trustedOrigins);
+
 export const auth = betterAuth({
   // 👇 1. ADD THIS: Better Auth MUST know where it lives!
   baseURL: process.env.NEXT_PUBLIC_SERVER_URL
@@ -51,18 +66,7 @@ export const auth = betterAuth({
       adminRoles: ["admin"],
     }),
   ],
-  trustedOrigins: [
-    "http://localhost:3000",
-    "http://localhost:3001",
-    "http://127.0.0.1:3000",
-    "http://127.0.0.1:3001",
-    "http://tech.localhost:3000",
-    "http://tech.localhost:3001",
-    "http://admin.localhost:3000",
-    "http://admin.localhost:3001",
-    process.env.NEXT_PUBLIC_SERVER_URL,
-    process.env.NEXT_PUBLIC_APP_URL,
-  ].filter((o): o is string => !!o),
+  trustedOrigins,
   session: {
     expiresIn: 60 * 60 * 24 * 7,
     updateAge: 60 * 60 * 24,
