@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
+    "build:cf": "turbo build && pnpm --filter web run build:cf",
     "deploy:web": "wrangler deploy -c apps/web/wrangler.jsonc",
     "check-types": "turbo check-types",
     "dev:native": "turbo -F native dev",
