@@ -5,26 +5,35 @@
     ".": {
       "default": "./src/index.ts"
     },
+    "./schema": {
+      "default": "./src/schema/index.ts"
+    },
     "./*": {
       "default": "./src/*.ts"
     }
   },
   "scripts": {
+    "build": "tsc",
     "db:push": "drizzle-kit push",
     "db:generate": "drizzle-kit generate",
     "db:studio": "drizzle-kit studio",
-    "db:migrate": "drizzle-kit migrate"
+    "db:migrate": "drizzle-kit migrate",
+    "db:seed-admin": "tsx --env-file=.env scripts/seed-admin.ts"
   },
   "dependencies": {
     "@homebuddy-12/env": "workspace:*",
     "@neondatabase/serverless": "^1.0.2",
+    "bcryptjs": "^3.0.3",
+    "better-auth": "catalog:",
     "dotenv": "catalog:",
     "drizzle-orm": "^0.45.1",
+    "ws": "^8.20.0",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@homebuddy-12/config": "workspace:*",
     "drizzle-kit": "^0.31.10",
+    "tsx": "^4.21.0",
     "typescript": "catalog:"
   }
 }

@@ -1,9 +1,15 @@
-import alchemy from "alchemy";
-import { Nextjs } from "alchemy/cloudflare";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { config } from "dotenv";
 
-config({ path: "./.env" });
-config({ path: "../../apps/web/.env" });
+// Load .env files BEFORE importing alchemy
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+config({ path: path.resolve(__dirname, ".env") });
+config({ path: path.resolve(__dirname, "../../apps/web/.env") });
+
+// NOW import alchemy
+import alchemy from "alchemy";
+import { Nextjs } from "alchemy/cloudflare";
 
 const app = await alchemy("homebuddy-12");
 

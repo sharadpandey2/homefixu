@@ -16,7 +16,7 @@
     "@better-auth/drizzle-adapter": "^1.5.5",
     "@homebuddy-12/db": "workspace:*",
     "@homebuddy-12/env": "workspace:*",
-    "better-auth": "catalog:",
+    "better-auth": "^1.6.5",
     "dotenv": "catalog:",
     "stripe": "catalog:",
     "zod": "catalog:"

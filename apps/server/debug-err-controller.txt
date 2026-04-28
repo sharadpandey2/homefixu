@@ -1,0 +1,6 @@
+TypeError: Cannot read properties of undefined (reading 'signup')
+    at TechnicianController.signup (C:\Users\63sha\Desktop\homebuddy\homebuddy-12\apps\server\src\modules\technician\technician.controller.ts:48:49)
+    at C:\Users\63sha\Desktop\homebuddy\homebuddy-12\node_modules\.pnpm\@nestjs+core@11.1.17_@nestj_07c33ceafb5c4f04f472e7b134012c3a\node_modules\@nestjs\core\router\router-execution-context.js:38:29
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async C:\Users\63sha\Desktop\homebuddy\homebuddy-12\node_modules\.pnpm\@nestjs+core@11.1.17_@nestj_07c33ceafb5c4f04f472e7b134012c3a\node_modules\@nestjs\core\router\router-execution-context.js:46:28
+    at async C:\Users\63sha\Desktop\homebuddy\homebuddy-12\node_modules\.pnpm\@nestjs+core@11.1.17_@nestj_07c33ceafb5c4f04f472e7b134012c3a\node_modules\@nestjs\core\router\router-proxy.js:9:17

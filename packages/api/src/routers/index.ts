@@ -1,7 +1,5 @@
 import type { Context } from "../context";
 
-import { contract } from "../index";
-
 export function createRouter(ctx: Context) {
   return {
     healthCheck: async () => {

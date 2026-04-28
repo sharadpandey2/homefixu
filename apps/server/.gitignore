@@ -21,6 +21,7 @@ dist/
 .vercel
 prisma/generated/
 
+ npx tsc --noEmit 2>&1  
 
 # deps
 node_modules/

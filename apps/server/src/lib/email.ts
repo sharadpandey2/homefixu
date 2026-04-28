@@ -1,212 +1,286 @@
-import { SESClient, SendEmailCommand, SendRawEmailCommand } from "@aws-sdk/client-ses";
+import { Injectable, Logger } from "@nestjs/common";
+import type { ConfigService } from "@nestjs/config";
+import * as nodemailer from "nodemailer";
 
-// Initialize AWS SES client
-const sesClient = new SESClient({
-  region: process.env.AWS_REGION || "us-east-1",
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
-  },
-});
-
-export interface SendEmailOptions {
-  to: string | string[];
+interface EmailOptions {
+  to: string;
   subject: string;
-  html?: string;
-  text?: string;
+  html: string;
   from?: string;
-  replyTo?: string | string[];
-  cc?: string | string[];
-  bcc?: string | string[];
 }
 
-/**
- * Send an email using AWS SES
- * @see https://docs.aws.amazon.com/ses/latest/APIReference/API_SendEmail.html
- */
-export async function sendEmail(options: SendEmailOptions) {
-  const { to, subject, html, text, from, replyTo, cc, bcc } = options;
+@Injectable()
+export class EmailService {
+  private readonly logger = new Logger(EmailService.name);
+  private transporter: nodemailer.Transporter;
 
-  const fromAddress = from || process.env.AWS_SES_FROM_EMAIL || "noreply@example.com";
-  const toAddresses = Array.isArray(to) ? to : [to];
-  const replyToAddresses = replyTo ? (Array.isArray(replyTo) ? replyTo : [replyTo]) : undefined;
-  const ccAddresses = cc ? (Array.isArray(cc) ? cc : [cc]) : undefined;
-  const bccAddresses = bcc ? (Array.isArray(bcc) ? bcc : [bcc]) : undefined;
+  constructor(private configService: ConfigService) {
+    const smtpPort = this.configService.get<number>("SMTP_PORT", 587);
 
-  const command = new SendEmailCommand({
-    Source: fromAddress,
-    Destination: {
-      ToAddresses: toAddresses,
-      CcAddresses: ccAddresses,
-      BccAddresses: bccAddresses,
-    },
-    Message: {
-      Subject: {
-        Data: subject,
-        Charset: "UTF-8",
+    this.transporter = nodemailer.createTransport({
+      host: this.configService.get<string>("SMTP_HOST"),
+      port: smtpPort,
+      secure: smtpPort === 465, // true for 465, false for 587
+      auth: {
+        user: this.configService.get<string>("SMTP_USER"),
+        pass: this.configService.get<string>("SMTP_PASS"),
       },
-      Body: {
-        ...(html && {
-          Html: {
-            Data: html,
-            Charset: "UTF-8",
-          },
-        }),
-        ...(text && {
-          Text: {
-            Data: text,
-            Charset: "UTF-8",
-          },
-        }),
+      tls: {
+        rejectUnauthorized: false,
       },
-    },
-    ReplyToAddresses: replyToAddresses,
-  });
+    });
 
-  try {
-    const response = await sesClient.send(command);
-    console.log("Email sent:", response.MessageId);
-    return { success: true, messageId: response.MessageId };
-  } catch (error) {
-    console.error("Email sending error:", error);
-    throw error;
-  }
-}
-
-export interface SendRawEmailOptions {
-  to: string | string[];
-  subject: string;
-  html?: string;
-  text?: string;
-  from?: string;
-  replyTo?: string;
-  attachments?: Array<{
-    filename: string;
-    content: string | Buffer;
-    contentType: string;
-  }>;
-}
-
-/**
- * Send a raw email with attachments using AWS SES
- * @see https://docs.aws.amazon.com/ses/latest/APIReference/API_SendRawEmail.html
- */
-export async function sendRawEmail(options: SendRawEmailOptions) {
-  const { to, subject, html, text, from, replyTo, attachments } = options;
-
-  const fromAddress = from || process.env.AWS_SES_FROM_EMAIL || "noreply@example.com";
-  const toAddresses = Array.isArray(to) ? to : [to];
-
-  // Build MIME message
-  const boundary = `----=_Part_${Date.now().toString(36)}`;
-  const mixedBoundary = `----=_Mixed_${Date.now().toString(36)}`;
-
-  let rawMessage = "";
-  rawMessage += `From: ${fromAddress}\r\n`;
-  rawMessage += `To: ${toAddresses.join(", ")}\r\n`;
-  rawMessage += `Subject: ${subject}\r\n`;
-  if (replyTo) {
-    rawMessage += `Reply-To: ${replyTo}\r\n`;
-  }
-  rawMessage += "MIME-Version: 1.0\r\n";
-
-  if (attachments && attachments.length > 0) {
-    rawMessage += `Content-Type: multipart/mixed; boundary="${mixedBoundary}"\r\n\r\n`;
-    rawMessage += `--${mixedBoundary}\r\n`;
-    rawMessage += `Content-Type: multipart/alternative; boundary="${boundary}"\r\n\r\n`;
-  } else {
-    rawMessage += `Content-Type: multipart/alternative; boundary="${boundary}"\r\n\r\n`;
+    // Verify SMTP connection on startup
+    this.transporter.verify((error, _success) => {
+      if (error) {
+        this.logger.error(
+          `SMTP configuration error: ${error.message}`,
+          error.stack,
+        );
+      } else {
+        this.logger.log("SMTP server is ready to send emails");
+      }
+    });
   }
 
-  // Text part
-  if (text) {
-    rawMessage += `--${boundary}\r\n`;
-    rawMessage += "Content-Type: text/plain; charset=UTF-8\r\n";
-    rawMessage += "Content-Transfer-Encoding: 7bit\r\n\r\n";
-    rawMessage += `${text}\r\n`;
-  }
+  async sendEmail(options: EmailOptions): Promise<boolean> {
+    try {
+      const info = await this.transporter.sendMail({
+        from: options.from || this.configService.get<string>("SMTP_FROM"),
+        to: options.to,
+        subject: options.subject,
+        html: options.html,
+        text: this.stripHtml(options.html), // plain text fallback
+      });
 
-  // HTML part
-  if (html) {
-    rawMessage += `--${boundary}\r\n`;
-    rawMessage += "Content-Type: text/html; charset=UTF-8\r\n";
-    rawMessage += "Content-Transfer-Encoding: 7bit\r\n\r\n";
-    rawMessage += `${html}\r\n`;
-  }
+      this.logger.log(
+        `Email sent successfully to ${options.to}: ${info.messageId}`,
+      );
 
-  rawMessage += `--${boundary}--\r\n`;
-
-  // Attachments
-  if (attachments && attachments.length > 0) {
-    for (const attachment of attachments) {
-      rawMessage += `--${mixedBoundary}\r\n`;
-      rawMessage += `Content-Type: ${attachment.contentType}; name="${attachment.filename}"\r\n`;
-      rawMessage += "Content-Transfer-Encoding: base64\r\n";
-      rawMessage += `Content-Disposition: attachment; filename="${attachment.filename}"\r\n\r\n`;
-
-      const content =
-        typeof attachment.content === "string"
-          ? attachment.content
-          : attachment.content.toString("base64");
-
-      rawMessage += `${content}\r\n`;
+      return true;
+    } catch (error) {
+      this.logger.error(
+        `Failed to send email to ${options.to}: ${error.message}`,
+        error.stack,
+      );
+      return false;
     }
-    rawMessage += `--${mixedBoundary}--\r\n`;
   }
 
-  const command = new SendRawEmailCommand({
-    RawMessage: {
-      Data: Buffer.from(rawMessage),
+  // Converts HTML to plain text for fallback
+  private stripHtml(html: string): string {
+    return html
+      .replace(/<[^>]*>?/gm, "")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  // Email Templates
+  async sendVerificationEmail(email: string, token: string): Promise<boolean> {
+    const verificationUrl = `${this.configService.get("APP_URL")}/verify-email?token=${token}`;
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #E8A741 0%, #D89028 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+            .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+            .button { display: inline-block; padding: 12px 30px; background: #E8A741; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+            .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>🏠 Welcome to Homefixu!</h1>
+            </div>
+            <div class="content">
+              <h2>Verify Your Email Address</h2>
+              <p>Thank you for registering with Homefixu. Please verify your email address to get started.</p>
+              <p>Click the button below to verify your email:</p>
+              <a href="${verificationUrl}" class="button">Verify Email</a>
+              <p>Or copy and paste this link in your browser:</p>
+              <p style="word-break: break-all; color: #666;">${verificationUrl}</p>
+              <p><strong>Note:</strong> This link will expire in 24 hours.</p>
+            </div>
+            <div class="footer">
+              <p>© 2026 Homefixu. All rights reserved.</p>
+              <p>If you didn't create an account, please ignore this email.</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    return this.sendEmail({
+      to: email,
+      subject: "Verify Your Homefixu Account",
+      html,
+    });
+  }
+
+  async sendPasswordResetOTP(email: string, otp: string): Promise<boolean> {
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #E8A741 0%, #D89028 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+            .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+            .otp-box { background: white; border: 2px dashed #E8A741; padding: 20px; text-align: center; border-radius: 10px; margin: 20px 0; }
+            .otp-code { font-size: 32px; font-weight: bold; color: #E8A741; letter-spacing: 5px; }
+            .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>🔐 Password Reset</h1>
+            </div>
+            <div class="content">
+              <h2>Reset Your Password</h2>
+              <p>You requested to reset your password. Use the OTP below:</p>
+              <div class="otp-box">
+                <p style="margin: 0; color: #666;">Your OTP Code:</p>
+                <div class="otp-code">${otp}</div>
+              </div>
+              <p><strong>Note:</strong> This OTP will expire in 5 minutes.</p>
+              <p>If you didn't request this, please ignore this email or contact support if you have concerns.</p>
+            </div>
+            <div class="footer">
+              <p>© 2026 Homefixu. All rights reserved.</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    return this.sendEmail({
+      to: email,
+      subject: "Password Reset OTP - Homefixu",
+      html,
+    });
+  }
+
+  async sendBookingConfirmation(
+    email: string,
+    bookingDetails: {
+      service: string;
+      date: string;
+      time: string;
+      property: string;
     },
-  });
+  ): Promise<boolean> {
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #E8A741 0%, #D89028 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+            .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+            .booking-details { background: white; padding: 20px; border-radius: 10px; margin: 20px 0; }
+            .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
+            .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>✅ Booking Confirmed!</h1>
+            </div>
+            <div class="content">
+              <h2>Your Service is Scheduled</h2>
+              <p>Thank you for booking with Homefixu. Your service has been confirmed.</p>
+              <div class="booking-details">
+                <div class="detail-row">
+                  <strong>Service:</strong>
+                  <span>${bookingDetails.service}</span>
+                </div>
+                <div class="detail-row">
+                  <strong>Property:</strong>
+                  <span>${bookingDetails.property}</span>
+                </div>
+                <div class="detail-row">
+                  <strong>Date:</strong>
+                  <span>${bookingDetails.date}</span>
+                </div>
+                <div class="detail-row">
+                  <strong>Time:</strong>
+                  <span>${bookingDetails.time}</span>
+                </div>
+              </div>
+              <p>A technician will be assigned shortly. You'll receive a notification once assigned.</p>
+            </div>
+            <div class="footer">
+              <p>© 2026 Homefixu. All rights reserved.</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
 
-  try {
-    const response = await sesClient.send(command);
-    console.log("Raw email sent:", response.MessageId);
-    return { success: true, messageId: response.MessageId };
-  } catch (error) {
-    console.error("Raw email sending error:", error);
-    throw error;
+    return this.sendEmail({
+      to: email,
+      subject: "Booking Confirmation - Homefixu",
+      html,
+    });
+  }
+
+  async sendHealthReportReady(
+    email: string,
+    _reportId: string,
+  ): Promise<boolean> {
+    const reportUrl = `${this.configService.get("APP_URL")}/dashboard/reports`;
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #E8A741 0%, #D89028 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+            .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+            .button { display: inline-block; padding: 12px 30px; background: #E8A741; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+            .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>📊 Your Home Health Report is Ready!</h1>
+            </div>
+            <div class="content">
+              <h2>Report Generated</h2>
+              <p>Your home health report has been generated by our AI system based on the technician's inspection.</p>
+              <p>View your detailed report to see:</p>
+              <ul>
+                <li>Overall health score</li>
+                <li>Category-wise breakdown</li>
+                <li>Risk flags and vulnerabilities</li>
+                <li>Recommended repairs and maintenance</li>
+              </ul>
+              <a href="${reportUrl}" class="button">View Report</a>
+            </div>
+            <div class="footer">
+              <p>© 2026 Homefixu. All rights reserved.</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    return this.sendEmail({
+      to: email,
+      subject: "Your Home Health Report is Ready - Homefixu",
+      html,
+    });
   }
 }
-
-/**
- * Send multiple emails (note: SES has rate limits, consider using bulk sending for large volumes)
- */
-export async function sendBatchEmails(
-  emails: Array<{
-    to: string | string[];
-    subject: string;
-    html?: string;
-    text?: string;
-    from?: string;
-  }>,
-) {
-  const results = await Promise.allSettled(emails.map((email) => sendEmail(email)));
-
-  const successful = results.filter((r) => r.status === "fulfilled").length;
-  const failed = results.filter((r) => r.status === "rejected").length;
-
-  console.log(`Batch emails: ${successful} sent, ${failed} failed`);
-
-  return {
-    success: failed === 0,
-    total: emails.length,
-    successful,
-    failed,
-    results: results.map((r, i) => ({
-      email: emails[i]?.to,
-      status: r.status,
-      ...(r.status === "fulfilled" ? { messageId: r.value.messageId } : { error: r.reason }),
-    })),
-  };
-}
-
-/**
- * Get the SES client for advanced usage
- */
-export function getSESClient() {
-  return sesClient;
-}
-
-export { sesClient, SESClient, SendEmailCommand, SendRawEmailCommand };

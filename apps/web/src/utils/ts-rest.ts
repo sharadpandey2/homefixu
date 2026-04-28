@@ -14,12 +14,12 @@ export const queryClient = new QueryClient({
 });
 
 const clientArgs = {
-  baseUrl: `${env.VITE_SERVER_URL}/rest`,
+  baseUrl: `${env.NEXT_PUBLIC_SERVER_URL}/rest`, // Fixed environment variable
   baseHeaders: {},
   credentials: "include" as const,
   api: tsRestFetchApi,
 };
 
-const client = initClient(contract, clientArgs);
+const _client = initClient(contract, clientArgs);
 
 export const tsr = initTsrReactQuery(contract, clientArgs);

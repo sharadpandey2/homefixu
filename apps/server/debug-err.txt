@@ -1,0 +1,1 @@
+APIError: role is not allowed to be set

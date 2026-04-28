@@ -1,13 +1,20 @@
 import "@homebuddy-12/env/web";
-import type { NextConfig } from "next";
-
 import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   typedRoutes: true,
   reactCompiler: true,
+  async rewrites() {
+    return [
+      {
+        // This will proxy all /api requests to your NestJS backend
+        source: "/api/:path*",
+        destination: `${process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:3000"}/api/:path*`,
+      },
+    ];
+  },
 };
 
-export default nextConfig;
-
 initOpenNextCloudflareForDev();
+export default nextConfig;

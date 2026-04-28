@@ -1,5 +1,3 @@
-import type { ToasterProps } from "sonner";
-
 import {
   CheckCircle as CircleCheckIcon,
   Info as InfoIcon,
@@ -8,6 +6,7 @@ import {
   Warning as TriangleAlertIcon,
 } from "@phosphor-icons/react";
 import { useTheme } from "next-themes";
+import type { ToasterProps } from "sonner";
 import { Toaster as Sonner } from "sonner";
 
 const Toaster = ({ ...props }: ToasterProps) => {

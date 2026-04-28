@@ -1,100 +1,181 @@
-import { Queue, type ConnectionOptions } from "bullmq";
+import { InjectQueue } from "@nestjs/bull";
+import { Injectable } from "@nestjs/common";
+import type { Queue } from "bull";
 
-export const connection: ConnectionOptions = {
-  host: process.env.REDIS_HOST || "localhost",
-  port: Number(process.env.REDIS_PORT) || 6379,
-  password: process.env.REDIS_PASSWORD || undefined,
-  maxRetriesPerRequest: null,
-};
-
-/**
- * Example queue for background job processing
- * @see https://docs.bullmq.io/
- */
-export const emailQueue = new Queue("email", { connection });
-export const notificationQueue = new Queue("notification", { connection });
-
-// Define job data types
 export interface EmailJobData {
   to: string;
   subject: string;
-  body: string;
-  templateId?: string;
+  html: string;
+}
+
+export interface HealthReportJobData {
+  propertyId: string;
+  userId: string;
+  inspectionData: any;
 }
 
 export interface NotificationJobData {
   userId: string;
-  type: "push" | "in-app" | "sms";
+  type: "booking" | "report" | "payment" | "general";
   title: string;
   message: string;
-  data?: Record<string, unknown>;
+  data?: any;
 }
 
-/**
- * Add an email job to the queue
- */
-export async function queueEmail(
-  data: EmailJobData,
-  options?: { delay?: number; priority?: number },
-) {
-  return emailQueue.add("send-email", data, {
-    delay: options?.delay,
-    priority: options?.priority,
-    attempts: 3,
-    backoff: {
-      type: "exponential",
-      delay: 1000,
-    },
-  });
-}
+@Injectable()
+export class QueueService {
+  constructor(
+    @InjectQueue("email") private emailQueue: Queue,
+    @InjectQueue("reports") private reportsQueue: Queue,
+    @InjectQueue("notifications") private notificationsQueue: Queue,
+  ) {}
 
-/**
- * Add a notification job to the queue
- */
-export async function queueNotification(data: NotificationJobData, options?: { delay?: number }) {
-  return notificationQueue.add("send-notification", data, {
-    delay: options?.delay,
-    attempts: 3,
-    backoff: {
-      type: "exponential",
-      delay: 1000,
-    },
-  });
-}
+  /**
+   * Add email to queue
+   */
+  async addEmailJob(data: EmailJobData, priority = 5): Promise<void> {
+    await this.emailQueue.add("send-email", data, {
+      priority,
+      attempts: 3,
+      backoff: {
+        type: "exponential",
+        delay: 2000,
+      },
+    });
+  }
 
-/**
- * Schedule a recurring job (cron-style)
- * @example scheduleRecurringJob(emailQueue, "daily-report", { type: "report" }, "0 9 * * *")
- */
-export async function scheduleRecurringJob<T>(
-  queue: Queue,
-  name: string,
-  data: T,
-  pattern: string, // Cron pattern
-) {
-  return queue.upsertJobScheduler(name, { pattern }, { name, data: data as object });
-}
+  /**
+   * Add bulk emails to queue
+   */
+  async addBulkEmailJobs(emails: EmailJobData[]): Promise<void> {
+    const jobs = emails.map((email) => ({
+      name: "send-email",
+      data: email,
+      opts: {
+        attempts: 3,
+        backoff: {
+          type: "exponential",
+          delay: 2000,
+        },
+      },
+    }));
 
-/**
- * Get queue statistics
- */
-export async function getQueueStats(queue: Queue) {
-  const [waiting, active, completed, failed, delayed] = await Promise.all([
-    queue.getWaitingCount(),
-    queue.getActiveCount(),
-    queue.getCompletedCount(),
-    queue.getFailedCount(),
-    queue.getDelayedCount(),
-  ]);
+    await this.emailQueue.addBulk(jobs);
+  }
 
-  return { waiting, active, completed, failed, delayed };
-}
+  /**
+   * Add health report generation job
+   */
+  async addHealthReportJob(data: HealthReportJobData): Promise<void> {
+    await this.reportsQueue.add("generate-report", data, {
+      attempts: 2,
+      timeout: 60000, // 1 minute timeout
+      backoff: {
+        type: "exponential",
+        delay: 5000,
+      },
+    });
+  }
 
-/**
- * Gracefully close all queues and connections
- * Call this during application shutdown
- */
-export async function closeQueues() {
-  await emailQueue.close();
-  await notificationQueue.close();
+  /**
+   * Add notification job
+   */
+  async addNotificationJob(data: NotificationJobData): Promise<void> {
+    await this.notificationsQueue.add("send-notification", data, {
+      priority: data.type === "payment" ? 10 : 5,
+      attempts: 3,
+    });
+  }
+
+  /**
+   * Schedule delayed email
+   */
+  async scheduleEmail(data: EmailJobData, delayMs: number): Promise<void> {
+    await this.emailQueue.add("send-email", data, {
+      delay: delayMs,
+      attempts: 3,
+    });
+  }
+
+  /**
+   * Schedule recurring job (e.g., weekly health report reminders)
+   */
+  async scheduleRecurringEmail(
+    data: EmailJobData,
+    cronExpression: string,
+  ): Promise<void> {
+    await this.emailQueue.add("send-email", data, {
+      repeat: {
+        cron: cronExpression,
+      },
+    });
+  }
+
+  /**
+   * Get queue stats
+   */
+  async getEmailQueueStats() {
+    const [waiting, active, completed, failed] = await Promise.all([
+      this.emailQueue.getWaitingCount(),
+      this.emailQueue.getActiveCount(),
+      this.emailQueue.getCompletedCount(),
+      this.emailQueue.getFailedCount(),
+    ]);
+
+    return { waiting, active, completed, failed };
+  }
+
+  async getReportsQueueStats() {
+    const [waiting, active, completed, failed] = await Promise.all([
+      this.reportsQueue.getWaitingCount(),
+      this.reportsQueue.getActiveCount(),
+      this.reportsQueue.getCompletedCount(),
+      this.reportsQueue.getFailedCount(),
+    ]);
+
+    return { waiting, active, completed, failed };
+  }
+
+  /**
+   * Clear all jobs from queue
+   */
+  async clearEmailQueue(): Promise<void> {
+    await this.emailQueue.empty();
+  }
+
+  /**
+   * Remove specific job
+   */
+  async removeJob(queueName: string, jobId: string): Promise<void> {
+    const queue = this.getQueueByName(queueName);
+    const job = await queue.getJob(jobId);
+    if (job) {
+      await job.remove();
+    }
+  }
+
+  /**
+   * Retry failed jobs
+   */
+  async retryFailedJobs(queueName: string): Promise<void> {
+    const queue = this.getQueueByName(queueName);
+    const failed = await queue.getFailed();
+
+    for (const job of failed) {
+      await job.retry();
+    }
+  }
+
+  private getQueueByName(name: string): Queue {
+    switch (name) {
+      case "email":
+        return this.emailQueue;
+      case "reports":
+        return this.reportsQueue;
+      case "notifications":
+        return this.notificationsQueue;
+      default:
+        throw new Error(`Queue ${name} not found`);
+    }
+  }
 }

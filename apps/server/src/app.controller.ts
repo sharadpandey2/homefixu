@@ -1,13 +1,19 @@
-import { Controller, Get } from "@nestjs/common";
+import { auth } from "@homebuddy-12/auth";
+import { All, Controller, Req, Res } from "@nestjs/common";
+import { toNodeHandler } from "better-auth/node";
+import type { Request, Response } from "express";
 
-import { AppService } from "./app.service";
+const betterAuthHandler = toNodeHandler(auth);
 
-@Controller()
-export class AppController {
-  constructor(private readonly appService: AppService) {}
+@Controller("auth")
+export class AuthController {
+  @Get("test")
+  test() {
+    return "Auth Controller Working";
+  }
 
-  @Get()
-  getHello(): string {
-    return this.appService.getHello();
+  @All("*")
+  async handleAuth(@Req() req: Request, @Res() res: Response) {
+    return betterAuthHandler(req, res);
   }
 }

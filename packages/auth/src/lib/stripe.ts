@@ -55,6 +55,13 @@ export async function createSubscriptionCheckout(params: {
   return session;
 }
 
-export async function constructWebhookEvent(payload: string | Buffer, signature: string) {
-  return stripe.webhooks.constructEvent(payload, signature, env.STRIPE_WEBHOOK_SECRET);
+export async function constructWebhookEvent(
+  payload: string | Buffer,
+  signature: string,
+) {
+  return stripe.webhooks.constructEvent(
+    payload,
+    signature,
+    env.STRIPE_WEBHOOK_SECRET,
+  );
 }
