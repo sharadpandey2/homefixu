@@ -82,7 +82,7 @@ export default function UnifiedLoginPage() {
         return;
       }
 
-      router.push(roleConfigs[selectedRole].redirect);
+      router.push(roleConfigs[selectedRole].redirect as string);
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
