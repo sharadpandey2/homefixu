@@ -18,6 +18,32 @@ export class BetterAuthMiddleware implements NestMiddleware {
   private readonly handler = toNodeHandler(auth);
 
   use(req: Request, res: Response, _next: NextFunction) {
+    const origin = req.headers["origin"] ?? "(no origin header)";
+    const method = req.method;
+    const url = req.originalUrl ?? req.url;
+
+    console.log(`[BetterAuth] ➡️  ${method} ${url}`);
+    console.log(`[BetterAuth] 🌐 Origin header: "${origin}"`);
+
+    // Intercept the response to log the outcome
+    const originalWriteHead = res.writeHead.bind(res);
+    (res as any).writeHead = function (
+      statusCode: number,
+      ...args: any[]
+    ): Response {
+      const isOriginError = statusCode === 403;
+      if (isOriginError) {
+        console.warn(
+          `[BetterAuth] ❌ 403 returned — origin "${origin}" was rejected by Better Auth trustedOrigins`,
+        );
+      } else {
+        console.log(
+          `[BetterAuth] ✅ ${statusCode} — origin "${origin}" accepted`,
+        );
+      }
+      return originalWriteHead(statusCode, ...args);
+    };
+
     return this.handler(req, res);
   }
 }
