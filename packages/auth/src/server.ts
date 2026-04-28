@@ -10,8 +10,12 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { admin } from "better-auth/plugins";
 
 export const auth = betterAuth({
-  // 👇 1. THIS IS MANDATORY. Add your baseURL here.
-  baseURL: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+  // BETTER_AUTH_URL must be the SERVER's own public URL (e.g. https://api.homefixu.in)
+  // NOT the frontend URL — Better Auth uses this for session/callback paths
+  baseURL:
+    process.env.BETTER_AUTH_URL ||
+    process.env.NEXT_PUBLIC_SERVER_URL ||
+    "http://localhost:3000",
 
   database: drizzleAdapter(db, {
     provider: "pg",
@@ -48,7 +52,13 @@ export const auth = betterAuth({
     "http://localhost:3001",
     "http://127.0.0.1:3000",
     "http://127.0.0.1:3001",
+    "https://www.homefixu.in",
+    "https://homefixu.in",
+    "https://api.homefixu.in",
     process.env.NEXT_PUBLIC_APP_URL ?? "",
+    process.env.NEXT_PUBLIC_SERVER_URL ?? "",
+    process.env.BETTER_AUTH_URL ?? "",
+    process.env.CORS_ORIGIN ?? "",
   ].filter(Boolean),
 
   session: {
@@ -61,7 +71,8 @@ export const auth = betterAuth({
   },
 
   advanced: {
-    useSecureCookies: false,
+    // Use secure cookies in production (Railway uses HTTPS)
+    useSecureCookies: process.env.NODE_ENV === "production",
   },
 });
 
