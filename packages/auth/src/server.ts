@@ -10,12 +10,13 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { admin } from "better-auth/plugins";
 
 export const auth = betterAuth({
-  // BETTER_AUTH_URL must be the SERVER's own public URL (e.g. https://api.homefixu.in)
-  // NOT the frontend URL — Better Auth uses this for session/callback paths
+  // baseURL = the SERVER's own public URL
+  // Better Auth uses this to build cookie domains, callback URLs, and origin checks
+  // ⚠️ If BETTER_AUTH_URL is missing, falls back to hardcoded Railway server URL
   baseURL:
     process.env.BETTER_AUTH_URL ||
     process.env.NEXT_PUBLIC_SERVER_URL ||
-    "http://localhost:3000",
+    "https://server-production-c3c4.up.railway.app",
 
   database: drizzleAdapter(db, {
     provider: "pg",

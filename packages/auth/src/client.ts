@@ -14,10 +14,11 @@
 import { adminClient } from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
 
-// For local debugging, hardcode backend URL to eliminate env issues.
-// Later you can safely switch back to process.env.NEXT_PUBLIC_API_URL.
+// ⚠️ NEXT_PUBLIC_SERVER_URL must be set in Railway web service Variables
+// Fallback = hardcoded Railway server URL (so auth works even if env var is missing)
 const AUTH_BASE_URL =
-  process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:3000";
+  process.env.NEXT_PUBLIC_SERVER_URL ||
+  "https://server-production-c3c4.up.railway.app";
 
 console.log("🔐 Better Auth Client Base URL:", AUTH_BASE_URL);
 
