@@ -286,7 +286,7 @@ async function generateRoomImage(
     );
 
     if (!startRes.ok) return null;
-    const result = await startRes.json();
+    const result: { output?: string[]; id?: string } = await startRes.json();
 
     // If synchronous result
     if (result.output && Array.isArray(result.output) && result.output[0]) {
@@ -305,7 +305,8 @@ async function generateRoomImage(
             },
           },
         );
-        const polled = await pollRes.json();
+        const polled: { status?: string; output?: string[] } =
+          await pollRes.json();
         if (polled.status === "succeeded" && polled.output?.[0])
           return polled.output[0];
         if (polled.status === "failed") return null;
