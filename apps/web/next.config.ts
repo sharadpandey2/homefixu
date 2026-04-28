@@ -4,7 +4,6 @@ import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   typedRoutes: true,
-  reactCompiler: true,
   async rewrites() {
     return [
       {
