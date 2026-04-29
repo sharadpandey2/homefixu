@@ -14,7 +14,7 @@ export const queryClient = new QueryClient({
 });
 
 const clientArgs = {
-  baseUrl: `${process.env.NEXT_PUBLIC_SERVER_URL ?? "https://server-production-c3c4.up.railway.app"}/api`, // Fixed environment variable
+  baseUrl: `${process.env.NEXT_PUBLIC_SERVER_URL ?? "http://localhost:3000"}/api`, // Fixed environment variable
   baseHeaders: {},
   credentials: "include" as const,
   api: tsRestFetchApi,

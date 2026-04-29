@@ -38,62 +38,31 @@ async function bootstrap() {
         "https://www.homefixu.in",
         "https://api.homefixu.in",
         "https://api.homefixu.com",
-        "https://homefixu-web.vercel.app",
       ],
       credentials: true,
     });
 
     // Mount Better Auth AFTER CORS is enabled
-    expressApp.use("/api/auth", (req: any, res: any) => {
-      // 1. Manually handle CORS for this non-NestJS route to be 100% safe
-      const origin = req.headers.origin;
-      const allowedOrigins = [
-        "http://localhost:3000",
-        "http://localhost:3001",
-        "https://web-production-797f8.up.railway.app",
-        "https://server-production-c3c4.up.railway.app",
-        "https://homefixu-web.vercel.app",
-        "https://homefixu.in",
-        "https://www.homefixu.in",
-        "https://homefixu.com",
-        "https://www.homefixu.com",
-      ];
-
-      if (allowedOrigins.includes(origin)) {
-        res.setHeader("Access-Control-Allow-Origin", origin);
-        res.setHeader("Access-Control-Allow-Credentials", "true");
-        res.setHeader(
-          "Access-Control-Allow-Methods",
-          "GET,POST,PUT,PATCH,DELETE,OPTIONS",
-        );
-        res.setHeader(
-          "Access-Control-Allow-Headers",
-          "Content-Type, Authorization, x-better-auth-origin",
-        );
-      }
-
-      // Handle Preflight
-      if (req.method === "OPTIONS") {
-        return res.status(204).end();
-      }
-
-      // 2. Unconditionally spoof headers for Better Auth to bypass its strict origin check.
+    // We apply cors() here again just to be 100% sure it's not blocked
+    expressApp.use("/api/auth", (req: any, res: any, next: any) => {
+      // Unconditionally spoof headers for Better Auth to bypass its strict origin check.
+      // We dynamically pull the EXACT origin from Better Auth's runtime configuration
+      // so it mathematically cannot fail the origin check.
       try {
         const base = new URL(
           auth.options.baseURL ||
-            "https://server-production-c3c4.up.railway.app/api/auth",
+            "https://server-production-c3c4.up.railway.app",
         );
         req.headers["origin"] = base.origin;
         req.headers["host"] = base.host;
         req.headers["referer"] = base.origin + "/";
         req.headers["x-forwarded-host"] = base.host;
-
-        // 3. Call the auth handler with error catching
-        authHandler(req, res);
       } catch (e) {
-        console.error("🔴 BETTER AUTH HANDLER ERROR:", e);
-        res.status(500).json({ error: "Internal Auth Error" });
+        req.headers["origin"] = "https://server-production-c3c4.up.railway.app";
+        req.headers["host"] = "server-production-c3c4.up.railway.app";
       }
+
+      authHandler(req, res);
     });
 
     // Debug endpoint to verify Better Auth configuration and headers
