@@ -58,6 +58,7 @@ export const auth = betterAuth({
       "http://127.0.0.1:8080",
       "https://web-production-797f8.up.railway.app",
       "https://server-production-c3c4.up.railway.app",
+      "https://homefixu-web.vercel.app",
       "https://homefixu.in",
       "https://www.homefixu.in",
       "https://api.homefixu.in",
