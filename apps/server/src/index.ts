@@ -38,6 +38,7 @@ async function bootstrap() {
         "https://www.homefixu.in",
         "https://api.homefixu.in",
         "https://api.homefixu.com",
+        "https://homefixu-web.vercel.app",
       ],
       credentials: true,
     });
