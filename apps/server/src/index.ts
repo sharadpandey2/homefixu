@@ -1,3 +1,4 @@
+// Railway rebuild trigger - forces pnpm via nixpacks.toml
 import "reflect-metadata";
 // IMPORTANT: Better Auth automatically overrides `baseURL` if `BETTER_AUTH_URL` is set in the environment.
 // This causes unpredictable behavior (e.g. missing /api/auth path or trailing spaces causing Invalid Origin).
