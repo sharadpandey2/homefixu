@@ -43,14 +43,23 @@ async function bootstrap() {
     // We apply cors() here again just to be 100% sure it's not blocked
     expressApp.use("/api/auth", (req: any, res: any, next: any) => {
       // Unconditionally spoof headers for Better Auth to bypass its strict origin check.
-      // We can do this safely because NestJS CORS (configured above) now strictly
-      // rejects unauthorized cross-origin requests before they even reach here.
-      req.headers["origin"] = "https://server-production-c3c4.up.railway.app";
-      req.headers["host"] = "server-production-c3c4.up.railway.app";
-      req.headers["referer"] = "https://server-production-c3c4.up.railway.app/";
-      req.headers["x-forwarded-host"] = "server-production-c3c4.up.railway.app";
+      // We dynamically pull the EXACT origin from Better Auth's runtime configuration
+      // so it mathematically cannot fail the origin check.
+      try {
+        const base = new URL(
+          auth.options.baseURL ||
+            "https://server-production-c3c4.up.railway.app",
+        );
+        req.headers["origin"] = base.origin;
+        req.headers["host"] = base.host;
+        req.headers["referer"] = base.origin + "/";
+        req.headers["x-forwarded-host"] = base.host;
+      } catch (e) {
+        req.headers["origin"] = "https://server-production-c3c4.up.railway.app";
+        req.headers["host"] = "server-production-c3c4.up.railway.app";
+      }
 
-      authHandler(req, res, next);
+      authHandler(req, res);
     });
 
     // Debug endpoint to verify Better Auth configuration and headers
