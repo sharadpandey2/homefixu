@@ -21,21 +21,12 @@ async function bootstrap() {
     app.setGlobalPrefix("api");
 
     app.enableCors({
-      origin: true, // Temporarily allow all for debugging
-      methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-      allowedHeaders: ["Content-Type", "Authorization", "Accept", "Cookie"],
+      origin: true,
       credentials: true,
     });
 
-    // Debug logging to see what the browser is actually sending
-    expressApp.use((req: any, res: any, next: any) => {
-      if (req.url.includes("auth")) {
-        console.log(`[AUTH-DEBUG] ${req.method} ${req.url} - Origin: ${req.headers.origin}`);
-      }
-      next();
-    });
-
     // Mount Better Auth AFTER CORS is enabled
+    // We apply cors() here again just to be 100% sure it's not blocked
     expressApp.use("/api/auth", authHandler);
 
     // Railway injects PORT dynamically; bind to 0.0.0.0 so external traffic reaches the container
