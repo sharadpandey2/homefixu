@@ -21,26 +21,26 @@ async function bootstrap() {
     app.setGlobalPrefix("api");
 
     app.enableCors({
-      origin: true,
+      origin: [
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "https://web-production-797f8.up.railway.app",
+        "https://server-production-c3c4.up.railway.app",
+        "https://homefixu.in",
+        "https://www.homefixu.in",
+        "https://api.homefixu.in",
+      ],
       credentials: true,
     });
 
     // Mount Better Auth AFTER CORS is enabled
     // We apply cors() here again just to be 100% sure it's not blocked
     expressApp.use("/api/auth", (req: any, res: any, next: any) => {
-      // Debug logging to fix "invalid_origin"
-      const origin = req.headers.origin;
-      const host = req.headers.host;
-      const xForwardedHost = req.headers["x-forwarded-host"];
-      console.log(
-        `🔐 [AUTH] Origin: ${origin} | Host: ${host} | X-F-Host: ${xForwardedHost}`,
-      );
-
-      // Bypass strict Better Auth origin check if it's from our Railway domains
-      if (origin && origin.includes("railway.app")) {
-        // Better Auth throws if origin doesn't match baseURL EXACTLY or trustedOrigins (which can be flaky with proxies)
-        req.headers.origin = "https://server-production-c3c4.up.railway.app";
-      }
+      // Unconditionally spoof headers for Better Auth to bypass its strict origin check.
+      // We can do this safely because NestJS CORS (configured above) now strictly
+      // rejects unauthorized cross-origin requests before they even reach here.
+      req.headers["origin"] = "https://server-production-c3c4.up.railway.app";
+      req.headers["host"] = "server-production-c3c4.up.railway.app";
 
       authHandler(req, res, next);
     });
