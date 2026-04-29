@@ -23,7 +23,7 @@ import type {
 import { TechnicianService } from "./technician.service";
 import { TechnicianSignupService } from "./technician-signup.service";
 
-@Controller()
+@Controller("technician")
 export class TechnicianController {
   constructor(
     @Inject(TechnicianService)
@@ -54,13 +54,13 @@ export class TechnicianController {
   // PROTECTED ROUTES
   // ═══════════════════════════════════════════════════════════════════════════════
 
-  @Get("technician/profile")
+  @Get("profile")
   @UseGuards(AuthGuard)
   async getProfile(@CurrentUser("id") technicianId: string) {
     return this.technicianService.getProfile(technicianId);
   }
 
-  @Patch("technician/profile")
+  @Patch("profile")
   @UseGuards(AuthGuard)
   async updateProfile(
     @CurrentUser("id") technicianId: string,
@@ -73,7 +73,7 @@ export class TechnicianController {
   // KYC
   // ═══════════════════════════════════════════════════════════════════════════════
 
-  @Post("technician/kyc/submit")
+  @Post("kyc/submit")
   @UseGuards(AuthGuard)
   async submitKyc(
     @CurrentUser("id") technicianId: string,
@@ -82,7 +82,7 @@ export class TechnicianController {
     return this.technicianService.submitKyc(technicianId, dto);
   }
 
-  @Get("technician/kyc/status")
+  @Get("kyc/status")
   @UseGuards(AuthGuard)
   async getKycStatus(@CurrentUser("id") technicianId: string) {
     return this.technicianService.getKycStatus(technicianId);
@@ -92,13 +92,13 @@ export class TechnicianController {
   // AVAILABILITY
   // ═══════════════════════════════════════════════════════════════════════════════
 
-  @Get("technician/availability")
+  @Get("availability")
   @UseGuards(AuthGuard)
   async getAvailability(@CurrentUser("id") technicianId: string) {
     return this.technicianService.getAvailability(technicianId);
   }
 
-  @Patch("technician/availability")
+  @Patch("availability")
   @UseGuards(AuthGuard)
   async updateAvailability(
     @CurrentUser("id") technicianId: string,
@@ -190,7 +190,7 @@ export class TechnicianController {
   // INSPECTIONS
   // ═══════════════════════════════════════════════════════════════════════════════
 
-  @Post("technician/inspections")
+  @Post("inspections")
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.CREATED)
   async createInspection(
@@ -200,13 +200,13 @@ export class TechnicianController {
     return this.technicianService.createInspection(technicianId, dto);
   }
 
-  @Get("technician/inspections")
+  @Get("inspections")
   @UseGuards(AuthGuard)
   async listInspections(@CurrentUser("id") technicianId: string) {
     return this.technicianService.listInspections(technicianId);
   }
 
-  @Get("technician/inspections/:id")
+  @Get("inspections/:id")
   @UseGuards(AuthGuard)
   async getInspection(
     @CurrentUser("id") technicianId: string,
