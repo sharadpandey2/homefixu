@@ -23,6 +23,7 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "@better-auth/infra": "^0.2.5",
     "@homebuddy-12/env": "workspace:*",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

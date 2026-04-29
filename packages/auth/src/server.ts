@@ -11,10 +11,19 @@ import { admin } from "better-auth/plugins";
 
 export const auth = betterAuth({
   // baseURL must point to the EXACT path where the auth handler is mounted
-  baseURL:
-    process.env.BETTER_AUTH_URL ||
-    (process.env.NEXT_PUBLIC_SERVER_URL ? `${process.env.NEXT_PUBLIC_SERVER_URL}/api/auth` : undefined) ||
-    "https://server-production-c3c4.up.railway.app/api/auth",
+  baseURL: (() => {
+    let url =
+      process.env.BETTER_AUTH_URL ||
+      (process.env.NEXT_PUBLIC_SERVER_URL
+        ? `${process.env.NEXT_PUBLIC_SERVER_URL}/api/auth`
+        : undefined) ||
+      "https://server-production-c3c4.up.railway.app/api/auth";
+    url = url.replace(/\/+$/, "");
+    if (!url.endsWith("/api/auth")) {
+      url += "/api/auth";
+    }
+    return url;
+  })(),
 
   database: drizzleAdapter(db, {
     provider: "pg",
@@ -65,11 +74,19 @@ export const auth = betterAuth({
     "https://web-production-797f8-production.up.railway.app",
     "https://server-production-c3c4-production.up.railway.app",
     // Extra from env vars
-    process.env.NEXT_PUBLIC_APP_URL ?? "",
-    process.env.NEXT_PUBLIC_SERVER_URL ?? "",
-    process.env.BETTER_AUTH_URL ?? "",
-    process.env.CORS_ORIGIN ?? "",
-  ].filter(Boolean),
+    process.env.NEXT_PUBLIC_APP_URL,
+    process.env.NEXT_PUBLIC_SERVER_URL,
+    process.env.BETTER_AUTH_URL,
+    process.env.CORS_ORIGIN,
+  ]
+    .filter(Boolean)
+    .map((url) => {
+      try {
+        return new URL(url!).origin;
+      } catch (e) {
+        return url!.replace(/\/+$/, "");
+      }
+    }),
 
   session: {
     expiresIn: 60 * 60 * 24 * 7,
@@ -82,8 +99,12 @@ export const auth = betterAuth({
 
   advanced: {
     // Disable secure cookies and origin check temporarily for debugging
-    useSecureCookies: false, 
+    useSecureCookies: true, // MUST be true for cross-site cookies
     disableOriginCheck: true,
+    crossSubDomainCookies: {
+      enabled: true,
+    },
+    defaultCrossSiteCookie: true,
   },
 });
 
