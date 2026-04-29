@@ -62,6 +62,9 @@ export const auth = betterAuth({
       "https://homefixu.in",
       "https://www.homefixu.in",
       "https://api.homefixu.in",
+      "https://homefixu.com",
+      "https://www.homefixu.com",
+      "https://api.homefixu.com",
     ];
     console.log("🔐 [BETTER AUTH INIT] trustedOrigins set to:", origins);
     return origins;
