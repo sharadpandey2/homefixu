@@ -15,6 +15,7 @@ import { adminClient } from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
 
 // ⚠️ NEXT_PUBLIC_SERVER_URL must be set in Railway web service Variables
+// It should be the BASE domain only (e.g. https://api.homefixu.in)
 const AUTH_BASE_URL =
   process.env.NEXT_PUBLIC_SERVER_URL ||
   "https://server-production-c3c4.up.railway.app";

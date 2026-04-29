@@ -10,12 +10,11 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { admin } from "better-auth/plugins";
 
 export const auth = betterAuth({
-  // baseURL must point to the auth endpoints
-  // baseURL must match the Client's baseURL EXACTLY
+  // baseURL must point to the EXACT path where the auth handler is mounted
   baseURL:
     process.env.BETTER_AUTH_URL ||
-    process.env.NEXT_PUBLIC_SERVER_URL ||
-    "https://server-production-c3c4.up.railway.app",
+    (process.env.NEXT_PUBLIC_SERVER_URL ? `${process.env.NEXT_PUBLIC_SERVER_URL}/api/auth` : undefined) ||
+    "https://server-production-c3c4.up.railway.app/api/auth",
 
   database: drizzleAdapter(db, {
     provider: "pg",
