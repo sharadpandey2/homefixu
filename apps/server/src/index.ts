@@ -41,6 +41,8 @@ async function bootstrap() {
       // rejects unauthorized cross-origin requests before they even reach here.
       req.headers["origin"] = "https://server-production-c3c4.up.railway.app";
       req.headers["host"] = "server-production-c3c4.up.railway.app";
+      req.headers["referer"] = "https://server-production-c3c4.up.railway.app/";
+      req.headers["x-forwarded-host"] = "server-production-c3c4.up.railway.app";
 
       authHandler(req, res, next);
     });

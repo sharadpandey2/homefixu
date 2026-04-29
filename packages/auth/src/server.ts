@@ -12,24 +12,9 @@ import { admin } from "better-auth/plugins";
 export const auth = betterAuth({
   // baseURL must point to the EXACT path where the auth handler is mounted
   baseURL: (() => {
-    // If deployed on Railway (usually sets RAILWAY_STATIC_URL or RAILWAY_PUBLIC_DOMAIN, or just check NODE_ENV)
-    const isProd =
-      process.env.NODE_ENV === "production" || process.env.RAILWAY_ENVIRONMENT;
-
-    let url = process.env.BETTER_AUTH_URL;
-
-    // If in production but URL is localhost or missing, force the Railway URL
-    if (!url || (isProd && url.includes("localhost"))) {
-      url = process.env.NEXT_PUBLIC_SERVER_URL;
-      if (!url || (isProd && url.includes("localhost"))) {
-        url = "https://server-production-c3c4.up.railway.app";
-      }
-    }
-
-    url = url.replace(/\/+$/, "");
-    if (!url.endsWith("/api/auth")) {
-      url += "/api/auth";
-    }
+    // Completely hardcoded for Railway production to prevent any env var mishaps
+    const url = "https://server-production-c3c4.up.railway.app/api/auth";
+    console.log("🔐 [BETTER AUTH INIT] baseURL set to:", url);
     return url;
   })(),
 
@@ -63,38 +48,23 @@ export const auth = betterAuth({
     }),
   ],
 
-  trustedOrigins: [
-    // Local development
-    "http://localhost:3000",
-    "http://localhost:3001",
-    "http://localhost:8080",
-    "http://127.0.0.1:3000",
-    "http://127.0.0.1:3001",
-    // Production - custom domain
-    "https://www.homefixu.in",
-    "https://homefixu.in",
-    "https://api.homefixu.in",
-    // Production - Railway URLs
-    "https://web-production-797f8.up.railway.app",
-    "https://server-production-c3c4.up.railway.app",
-    "http://web-production-797f8.up.railway.app",
-    "http://server-production-c3c4.up.railway.app",
-    "https://web-production-797f8-production.up.railway.app",
-    "https://server-production-c3c4-production.up.railway.app",
-    // Extra from env vars
-    process.env.NEXT_PUBLIC_APP_URL,
-    process.env.NEXT_PUBLIC_SERVER_URL,
-    process.env.BETTER_AUTH_URL,
-    process.env.CORS_ORIGIN,
-  ]
-    .filter(Boolean)
-    .map((url) => {
-      try {
-        return new URL(url!).origin;
-      } catch (e) {
-        return url!.replace(/\/+$/, "");
-      }
-    }),
+  trustedOrigins: (() => {
+    const origins = [
+      "http://localhost:3000",
+      "http://localhost:3001",
+      "http://localhost:8080",
+      "http://127.0.0.1:3000",
+      "http://127.0.0.1:3001",
+      "http://127.0.0.1:8080",
+      "https://web-production-797f8.up.railway.app",
+      "https://server-production-c3c4.up.railway.app",
+      "https://homefixu.in",
+      "https://www.homefixu.in",
+      "https://api.homefixu.in",
+    ];
+    console.log("🔐 [BETTER AUTH INIT] trustedOrigins set to:", origins);
+    return origins;
+  })(),
 
   session: {
     expiresIn: 60 * 60 * 24 * 7,
