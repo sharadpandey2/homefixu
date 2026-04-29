@@ -1,4 +1,9 @@
 import "reflect-metadata";
+// IMPORTANT: Better Auth automatically overrides `baseURL` if `BETTER_AUTH_URL` is set in the environment.
+// This causes unpredictable behavior (e.g. missing /api/auth path or trailing spaces causing Invalid Origin).
+// We delete it here so Better Auth is forced to use our strictly hardcoded configuration.
+delete process.env.BETTER_AUTH_URL;
+
 import { auth } from "@homebuddy-12/auth";
 import { NestFactory } from "@nestjs/core";
 import { toNodeHandler } from "better-auth/node";
@@ -45,6 +50,16 @@ async function bootstrap() {
       req.headers["x-forwarded-host"] = "server-production-c3c4.up.railway.app";
 
       authHandler(req, res, next);
+    });
+
+    // Debug endpoint to verify Better Auth configuration and headers
+    expressApp.get("/api/debug/auth", (req: any, res: any) => {
+      res.json({
+        baseURL: auth.options.baseURL,
+        trustedOrigins: auth.options.trustedOrigins,
+        headers: req.headers,
+        timestamp: new Date().toISOString(),
+      });
     });
 
     // Railway injects PORT dynamically; bind to 0.0.0.0 so external traffic reaches the container
