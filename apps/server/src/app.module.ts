@@ -9,6 +9,7 @@ import { AdminModule } from "./modules/admin/admin.module";
 // 👇 1. Import your new modules here
 import { BookingsModule } from "./modules/bookings/bookings.module";
 import { CustomerModule } from "./modules/customer/customer.module";
+import { DashboardModule } from "./modules/dashboard/dashboard.module";
 import { EmailModule } from "./modules/email/email.module";
 import { TechnicianModule } from "./modules/technician/technician.module";
 
@@ -33,6 +34,7 @@ import { TechnicianModule } from "./modules/technician/technician.module";
     // 👇 2. Add them to the imports array so NestJS knows they exist!
     BookingsModule,
     EmailModule,
+    DashboardModule,
   ],
 
   controllers: [],
