@@ -3,11 +3,6 @@ import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   typedRoutes: true,
-  experimental: {
-    turbopack: {
-      root: "../../",
-    },
-  },
   async rewrites() {
     return [
       {
