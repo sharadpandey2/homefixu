@@ -15,12 +15,13 @@ import { adminClient } from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
 
 // ⚠️ NEXT_PUBLIC_SERVER_URL must be set in Railway web service Variables
-// Fallback = hardcoded Railway server URL (so auth works even if env var is missing)
 const AUTH_BASE_URL =
   process.env.NEXT_PUBLIC_SERVER_URL ||
   "https://server-production-c3c4.up.railway.app";
 
-console.log("🔐 Better Auth Client Base URL:", AUTH_BASE_URL);
+if (typeof window !== "undefined") {
+  console.log("🔐 [AUTH-CLIENT] Connecting to:", AUTH_BASE_URL);
+}
 
 export const authClient = createAuthClient({
   baseURL: AUTH_BASE_URL,

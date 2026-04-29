@@ -13,9 +13,7 @@ export const auth = betterAuth({
   // baseURL must point to the auth endpoints
   baseURL:
     process.env.BETTER_AUTH_URL ||
-    (process.env.NEXT_PUBLIC_SERVER_URL
-      ? `${process.env.NEXT_PUBLIC_SERVER_URL}/api/auth`
-      : undefined) ||
+    (process.env.NEXT_PUBLIC_SERVER_URL ? `${process.env.NEXT_PUBLIC_SERVER_URL}/api/auth` : undefined) ||
     "https://server-production-c3c4.up.railway.app/api/auth",
 
   database: drizzleAdapter(db, {
@@ -59,9 +57,13 @@ export const auth = betterAuth({
     "https://www.homefixu.in",
     "https://homefixu.in",
     "https://api.homefixu.in",
-    // ✅ Production - Railway URLs (MUST be hardcoded - this is what blocks "Invalid origin")
+    // Production - Railway URLs
     "https://web-production-797f8.up.railway.app",
     "https://server-production-c3c4.up.railway.app",
+    "http://web-production-797f8.up.railway.app",
+    "http://server-production-c3c4.up.railway.app",
+    "https://web-production-797f8-production.up.railway.app",
+    "https://server-production-c3c4-production.up.railway.app",
     // Extra from env vars
     process.env.NEXT_PUBLIC_APP_URL ?? "",
     process.env.NEXT_PUBLIC_SERVER_URL ?? "",
@@ -79,9 +81,8 @@ export const auth = betterAuth({
   },
 
   advanced: {
-    // Use secure cookies in production (Railway uses HTTPS)
-    useSecureCookies: process.env.NODE_ENV === "production",
-    // Temporarily disable origin check to bypass "Invalid origin" while debugging
+    // Disable secure cookies and origin check temporarily for debugging
+    useSecureCookies: false, 
     disableOriginCheck: true,
   },
 });
