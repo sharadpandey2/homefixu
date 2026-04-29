@@ -6,7 +6,9 @@ import { useEffect, useState } from "react";
 import { authClient } from "@/lib/auth-client"; // Ensure this path matches your setup
 
 // Base API URL for custom backend settings (like phone or notifications)
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_SERVER_URL ||
+  "https://server-production-c3c4.up.railway.app";
 
 interface NotificationSettings {
   emailNotifications: boolean;

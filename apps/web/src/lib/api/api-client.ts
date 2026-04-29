@@ -10,7 +10,8 @@ import type {
 
 // Base API URL - adjust based on your environment
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+  process.env.NEXT_PUBLIC_SERVER_URL ||
+  "https://server-production-c3c4.up.railway.app";
 
 class ApiClient {
   private async fetch<T>(
@@ -18,7 +19,7 @@ class ApiClient {
     options: RequestInit = {},
   ): Promise<ApiResponse<T>> {
     try {
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      const response = await fetch(`${API_BASE_URL}/api${endpoint}`, {
         ...options,
         headers: {
           "Content-Type": "application/json",
@@ -56,18 +57,18 @@ class ApiClient {
   // DASHBOARD
   // ════════════════════════════════════════════════════════════
   async getDashboardData(): Promise<ApiResponse<DashboardData>> {
-    return this.fetch<DashboardData>("/dashboard");
+    return this.fetch<DashboardData>("/customer/dashboard");
   }
 
   // ════════════════════════════════════════════════════════════
   // BOOKINGS
   // ════════════════════════════════════════════════════════════
   async getUpcomingBookings(limit = 5): Promise<ApiResponse<Booking[]>> {
-    return this.fetch<Booking[]>(`/bookings/upcoming?limit=${limit}`);
+    return this.fetch<Booking[]>(`/customer/bookings/upcoming?limit=${limit}`);
   }
 
   async getBookingById(id: string): Promise<ApiResponse<Booking>> {
-    return this.fetch<Booking>(`/bookings/${id}`);
+    return this.fetch<Booking>(`/customer/bookings/${id}`);
   }
 
   async createBooking(data: {
@@ -76,7 +77,7 @@ class ApiClient {
     scheduledAt: string;
     notes?: string;
   }): Promise<ApiResponse<Booking>> {
-    return this.fetch<Booking>("/bookings", {
+    return this.fetch<Booking>("/customer/bookings", {
       method: "POST",
       body: JSON.stringify(data),
     });

@@ -44,7 +44,9 @@ interface DashboardOverview {
   } | null;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_SERVER_URL ||
+  "https://server-production-c3c4.up.railway.app";
 
 // ─── STATIC DATA (Fallback / Unmapped backend fields) ───────────────────
 const CATEGORY_SCORES = [

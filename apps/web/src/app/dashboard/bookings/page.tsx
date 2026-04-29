@@ -46,7 +46,9 @@ const TIME_SLOTS = [
 type BookingTab = "upcoming" | "past" | "all";
 
 // Base API URL
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_SERVER_URL ||
+  "https://server-production-c3c4.up.railway.app";
 
 // Helper Functions
 function formatDate(dateString: string) {
