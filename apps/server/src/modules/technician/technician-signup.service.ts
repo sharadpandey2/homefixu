@@ -88,6 +88,9 @@ export class TechnicianSignupService {
           password: dto.password,
           name: dto.fullName,
         },
+        headers: new Headers({
+          origin: "https://server-production-c3c4.up.railway.app",
+        }),
       });
 
       const technicianId = authResult.user.id;
@@ -227,6 +230,9 @@ export class TechnicianSignupService {
         email: normalizedEmail,
         password: dto.password,
       },
+      headers: new Headers({
+        origin: "https://server-production-c3c4.up.railway.app",
+      }),
     });
   }
 }
