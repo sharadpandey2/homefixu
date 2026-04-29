@@ -12,12 +12,20 @@ import { admin } from "better-auth/plugins";
 export const auth = betterAuth({
   // baseURL must point to the EXACT path where the auth handler is mounted
   baseURL: (() => {
-    let url =
-      process.env.BETTER_AUTH_URL ||
-      (process.env.NEXT_PUBLIC_SERVER_URL
-        ? `${process.env.NEXT_PUBLIC_SERVER_URL}/api/auth`
-        : undefined) ||
-      "https://server-production-c3c4.up.railway.app/api/auth";
+    // If deployed on Railway (usually sets RAILWAY_STATIC_URL or RAILWAY_PUBLIC_DOMAIN, or just check NODE_ENV)
+    const isProd =
+      process.env.NODE_ENV === "production" || process.env.RAILWAY_ENVIRONMENT;
+
+    let url = process.env.BETTER_AUTH_URL;
+
+    // If in production but URL is localhost or missing, force the Railway URL
+    if (!url || (isProd && url.includes("localhost"))) {
+      url = process.env.NEXT_PUBLIC_SERVER_URL;
+      if (!url || (isProd && url.includes("localhost"))) {
+        url = "https://server-production-c3c4.up.railway.app";
+      }
+    }
+
     url = url.replace(/\/+$/, "");
     if (!url.endsWith("/api/auth")) {
       url += "/api/auth";
