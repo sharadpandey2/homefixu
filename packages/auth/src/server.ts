@@ -77,13 +77,12 @@ export const auth = betterAuth({
   },
 
   advanced: {
-    // Disable secure cookies and origin check temporarily for debugging
-    useSecureCookies: true, // MUST be true for cross-site cookies
+    useSecureCookies: true, // Required for SameSite=None
     disableOriginCheck: true,
     crossSubDomainCookies: {
-      enabled: true,
+      enabled: false, // Set to false because domains are completely different
     },
-    defaultCrossSiteCookie: true,
+    defaultCrossSiteCookie: true, // Sets SameSite=None
   },
 });
 

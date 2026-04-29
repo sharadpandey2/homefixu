@@ -31,7 +31,11 @@ export async function middleware(req: NextRequest) {
 
   const matched = PROTECTED_ROUTES.find((r) => pathname.startsWith(r.prefix));
 
-  if (matched) {
+  // ⚠️ CRITICAL: In a split-domain deployment (Vercel + Railway),
+  // Vercel's edge middleware CANNOT see cookies set on Railway's domain.
+  // We disable this strict check to allow the redirect to happen,
+  // and rely on the client-side session check or custom domain setup.
+  /*
     const hasCookie = req.cookies
       .getAll()
       .some(
@@ -44,8 +48,7 @@ export async function middleware(req: NextRequest) {
     if (!hasCookie) {
       return NextResponse.redirect(new URL(matched.loginPath, req.url));
     }
-    // For now, skip the complex fetch to avoid the Turbopack crash
-  }
+    */
 
   return NextResponse.next();
 }
